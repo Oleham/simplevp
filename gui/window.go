@@ -10,15 +10,15 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-var SIMPLEVP fyne.App = app.New()
-var MAINWINDOW fyne.Window = SIMPLEVP.NewWindow("simpleVP 3.0")
+var simpleVP fyne.App = app.New()
+var mainWindow fyne.Window = simpleVP.NewWindow("simpleVP 3.0")
 
 func StartGUI() {
-	mainMenu := menu(MAINWINDOW)
-	MAINWINDOW.SetMainMenu(mainMenu)
-	MAINWINDOW.SetContent(frontPage())
-	MAINWINDOW.Resize(fyne.NewSize(300, 300))
-	MAINWINDOW.ShowAndRun()
+	mainMenu := menu(mainWindow)
+	mainWindow.SetMainMenu(mainMenu)
+	mainWindow.SetContent(frontPage())
+	mainWindow.Resize(fyne.NewSize(300, 300))
+	mainWindow.ShowAndRun()
 }
 
 func frontPage() *fyne.Container {
@@ -32,7 +32,7 @@ Prøv det nå!`
 
 	textObj := widget.NewLabel(text)
 
-	button := widget.NewButton("Trykk meg!", func() { SIMPLEVP.SendNotification(&fyne.Notification{Title: "Varsel", Content: "Dette er en test"}) })
+	button := widget.NewButton("Trykk meg!", func() { simpleVP.SendNotification(&fyne.Notification{Title: "Varsel", Content: "Dette er en test"}) })
 
 	page := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), textObj, button)
 

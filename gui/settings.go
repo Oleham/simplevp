@@ -45,7 +45,7 @@ func settingsForm() *widget.Form {
 			UploadPath:   fields[4].Entry.Text,
 		}
 
-		confirmation := dialog.NewInformation("Settings saved", "The settings have been saved", MAINWINDOW)
+		confirmation := dialog.NewInformation("Settings saved", "The settings have been saved", mainWindow)
 		confirmation.Show()
 
 		db.UpdateSettings(&newSettings)
