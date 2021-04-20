@@ -1,6 +1,10 @@
 package db
 
-import "github.com/Oleham/simplevp/xtrf"
+import (
+	"fmt"
+
+	"github.com/Oleham/simplevp/xtrf"
+)
 
 type Job struct {
 	PK             uint   `gorm:"primaryKey"`
@@ -21,24 +25,25 @@ type Job struct {
 func UpdateJobs() {
 
 	current := ShowSettings()
+	fmt.Println(current)
 	newJobs := xtrf.JobsInProgress(current.URL, current.Email, current.Password)
 
 	for _, item := range *newJobs {
 
-		entry := new(Job)
+		var entry Job
 
-		entry.VendorID = item.Id
-		entry.Navn = item.Overview.ProjectName
-		entry.Quantity = item.Overview.JobQuantities.WeightedQuantities[0].Value
-		entry.Unit = item.Overview.JobQuantities.WeightedQuantities[0].Unit
-		entry.Deadline = item.Overview.Deadline.Unix()
-		entry.ProjectManager = item.Overview.ProjectManager.FirstName +
-			item.Overview.ProjectManager.LastName
-		entry.SourceLang = item.Overview.SourceLanguage.Name
-		entry.TargetLang = item.Overview.TargetLanguages[0].Name
+		entry.VendorID = string(item.Id)
+		entry.Navn = item.Main.ProjectName
+		entry.Quantity = item.Main.JobQuantities.Weighted[0].Value
+		entry.Unit = item.Main.JobQuantities.Weighted[0].Unit
+		entry.Deadline = item.Main.Deadline.Unix()
+		entry.ProjectManager = item.Main.ProjectManager.FirstName +
+			item.Main.ProjectManager.LastName
+		entry.SourceLang = item.Main.SourceLanguage.Name
+		entry.TargetLang = item.Main.Targets[0].Name
 		entry.SourceFiles = true
 		entry.Delievered = false
 
-		sVPDB.Create(entry)
+		sVPDB.Create(&entry)
 	}
 }

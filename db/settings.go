@@ -8,8 +8,6 @@ type Setting struct {
 
 func ShowSettings() *Setting {
 
-	sVPDB.AutoMigrate(&Setting{})
-
 	var current Setting
 
 	sVPDB.FirstOrCreate(&current, 1)
