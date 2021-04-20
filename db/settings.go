@@ -6,7 +6,7 @@ type Setting struct {
 	URL, Email, Password, DownloadPath, UploadPath string
 }
 
-func ShowSettings() *Setting {
+func Settings() *Setting {
 
 	var current Setting
 

@@ -1,11 +1,8 @@
 package gui
 
 import (
-	"fmt"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
@@ -37,18 +34,6 @@ Prøv det nå!`
 	page := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), textObj, button)
 
 	return page
-}
-
-func jobber() *container.Scroll {
-	labels := make([]fyne.CanvasObject, 20, 30)
-
-	for i := 0; i < 20; i++ {
-		labels[i] = widget.NewLabel(fmt.Sprintf("Jobb nr. %d", i))
-	}
-
-	bilde := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), labels...)
-
-	return container.NewScroll(bilde)
 }
 
 func menu(window fyne.Window) *fyne.MainMenu {

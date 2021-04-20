@@ -17,7 +17,7 @@ func newEntryWText(f func() *widget.Entry, text string) *widget.Entry {
 func settingsForm() *widget.Form {
 	// creates the form for entering settings.
 
-	settings := db.ShowSettings()
+	settings := db.Settings()
 
 	// Init the different fields (keeping the references)
 	fields := []struct {
