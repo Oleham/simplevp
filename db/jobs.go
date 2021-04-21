@@ -8,23 +8,35 @@ import (
 )
 
 type Job struct {
-	PK             uint   `gorm:"primaryKey"`
-	VendorID       string `gorm:"unique"`
-	Navn           string
+	ID             string `gorm:"primaryKey"`
+	Client         string // <-- Name of client, i.e. XTRF owner, to allow multiple different jobs in the DB. Maybe make this a relationship?
+	IdNumber       string
+	Smart          bool
+	Status         string
+	Name           string
+	Type           string
 	Quantity       float64
 	Unit           string
-	Deadline       int64 `gorm:"type:datetime"`
+	Value          float64
+	Currency       string
+	Deadline       int64
+	DelieveryDate  int64
 	ProjectManager string
 	SourceLang     string
 	TargetLang     string
-	SourceFiles    bool
-	StartTime      int64 `gorm:"autoCreateTime"`
-	EndTime        int64
-	Delievered     bool
+	SourceFiles    []File
+	Communication  string
+	Invoice        string // <-- This will be the foreign key for invoice relation
 }
 
 func (j Job) DeadlineString() string {
 	return time.Unix(j.Deadline, 0).Format("02/01/2006 15.04.05")
+}
+
+type File struct {
+	ID                 string `gorm:"primaryKey"`
+	Name, MetaCategory string
+	JobID              string
 }
 
 func Jobs() *[]Job {
@@ -40,15 +52,20 @@ func Jobs() *[]Job {
 
 func UpdateJobs() {
 
-	current := Settings()
-	newJobs := xtrf.JobsInProgress(current.URL, current.Email, current.Password)
+	current := *Settings()
+	newJobs := xtrf.JobsInProgress(current[0].URL, current[0].Email, current[0].Password)
 
 	for _, item := range *newJobs {
 
 		var entry Job
 
-		entry.VendorID = string(item.Id)
-		entry.Navn = item.Main.ProjectName
+		entry.ID = string(item.Id)
+		entry.Name = item.Main.ProjectName
+		entry.Type = item.Main.Typus
+
+		if len(item.Main.Name) > 18 {
+			entry.Smart = true
+		}
 
 		if weight := item.Main.JobQuantities.Weighted; len(weight) > 0 {
 			entry.Quantity = weight[0].Value
@@ -63,9 +80,6 @@ func UpdateJobs() {
 		if target := item.Main.Targets; len(target) > 0 {
 			entry.TargetLang = target[0].Name
 		}
-
-		entry.SourceFiles = true
-		entry.Delievered = false
 
 		sVPDB.Create(&entry)
 	}
