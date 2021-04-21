@@ -117,7 +117,7 @@ func getJobs(baseURL, email, pw string) *[]byte {
 	}
 
 	// Build next request
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/vendors/jobs?statuses=IN_PROGRESS", baseURL), nil)
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/vendors/jobs?statuses=IN_PROGRESS,PENDING,NOT_INVOICED", baseURL), nil)
 	if err != nil {
 		log.Fatal(err)
 	}

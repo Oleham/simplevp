@@ -38,9 +38,9 @@ Prøv det nå!`
 
 func menu(window fyne.Window) *fyne.MainMenu {
 
-	settings := fyne.NewMenuItem("Settings", func() { window.SetContent(settingsForm()) })
+	settings := fyne.NewMenuItem("Settings", func() { window.SetContent(settingsPage()) })
 
-	jobber := fyne.NewMenuItem("Jobber", func() { window.SetContent(jobber()) })
+	jobber := fyne.NewMenuItem("Jobs", func() { window.SetContent(jobPage()) })
 
 	start := fyne.NewMenuItem("Home", func() { window.SetContent(frontPage()) })
 
