@@ -15,6 +15,7 @@ func OpenDatabase() *gorm.DB {
 
 	db.AutoMigrate(&Setting{})
 	db.AutoMigrate(&Job{})
+	db.AutoMigrate(&File{})
 
 	return db
 }

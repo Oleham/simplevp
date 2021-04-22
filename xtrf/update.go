@@ -50,11 +50,23 @@ type WeightedQuantities struct {
 	Unit  string  `json:"unit"`
 }
 
+// I need to create a custom Unmarshal method to deal with VendorID which might be string or int.
 type VendorID string
 
 func (v *VendorID) UnmarshalJSON(s []byte) (err error) {
-	// I need to create a custom Unmarshal method to deal with VendorID which might be string or int.
-	*v = VendorID(string(s))
+	var str string
+	err = json.Unmarshal(s, &str)
+	if err != nil {
+		//it's an int
+		var i int
+		err = json.Unmarshal(s, &i)
+		if err != nil {
+			return
+		}
+		*v = VendorID(fmt.Sprint(i))
+		return
+	}
+	*v = VendorID(str)
 	return
 }
 
@@ -86,9 +98,9 @@ func unpack(js *[]byte) (*[]XTRFJob, error) {
 	return jobber, nil
 }
 
-func getJobs(baseURL, email, pw string) *[]byte {
-	// Function takes email, pw and url to login to XTRF and download not invoiced jobs.
-	// Returns []byte containing the JSON string
+func login(baseURL, email, pw string) []*http.Cookie {
+	// Function takes email, pw and url to login to XTRF
+	// Returns cookies
 	client := &http.Client{}
 
 	// Create json body for login
@@ -116,19 +128,49 @@ func getJobs(baseURL, email, pw string) *[]byte {
 		log.Fatal(err)
 	}
 
-	// Build next request
+	return cookies
+}
+
+func filesRequest(baseURL, jobID string, smart bool) *http.Request {
+	// Create request for files (smart or classic)
+
+	var format string
+	if smart {
+		format = "%s/vendors/jobs/smart/%s"
+	} else {
+		format = "%s/vendors/jobs/classic/%s"
+	}
+
+	request, err := http.NewRequest("GET", fmt.Sprintf(format, baseURL, jobID), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return request
+}
+
+func jobsRequest(baseURL string) *http.Request {
+	// Create request for job list (IN_PROGRESS,PENDING,NOT_INVOICED)
+
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/vendors/jobs?statuses=IN_PROGRESS,PENDING,NOT_INVOICED", baseURL), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Add the cookies from the last request.
-	// Seems the other headers aren't needed
+	return request
+}
+
+func requestJSON(request *http.Request, cookies []*http.Cookie) *[]byte {
+	// Make a request to the XTRF API.
+	// Takes request and session cookie as argument.
+
+	client := &http.Client{}
+
+	// Adding cookies
 	for i := 0; i < len(cookies); i++ {
 		request.AddCookie(cookies[i])
 	}
 
-	resp, err = client.Do(request)
+	resp, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -140,12 +182,13 @@ func getJobs(baseURL, email, pw string) *[]byte {
 	}
 
 	return &text
+
 }
 
 func JobsInProgress(url, email, pw string) *[]XTRFJob {
 	// Download current jobs in progress from URL
 
-	jn := getJobs(url, email, pw)
+	jn := requestJSON(jobsRequest(url), login(url, email, pw))
 
 	jobber, err := unpack(jn)
 	if err != nil {
