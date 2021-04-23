@@ -1,7 +1,9 @@
 package db
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/Oleham/simplevp/xtrf"
@@ -9,7 +11,8 @@ import (
 
 type Job struct {
 	ID             string `gorm:"primaryKey"`
-	Client         string // <-- Name of client, i.e. XTRF owner, to allow multiple different jobs in the DB. Maybe make this a relationship?
+	SettingID      uint
+	Setting        Setting
 	IdNumber       string
 	Smart          bool
 	Status         string
@@ -52,35 +55,88 @@ func Jobs() *[]Job {
 
 func UpdateJobs() {
 
-	current := *Settings()
-	newJobs := xtrf.JobsInProgress(current[0].URL, current[0].Email, current[0].Password)
+	currentSet := *Settings()
 
-	for _, item := range *newJobs {
+	for _, set := range currentSet {
 
-		var entry Job
+		credentials := xtrf.Login(set.URL, set.Email, set.Password)
 
-		entry.ID = string(item.Id)
-		entry.Name = item.Main.ProjectName
-		entry.Type = item.Main.Typus
-
-		if len(item.Main.Name) > 18 {
-			entry.Smart = true
+		newJobs, err := xtrf.Jobs(set.URL, credentials)
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		if weight := item.Main.JobQuantities.Weighted; len(weight) > 0 {
-			entry.Quantity = weight[0].Value
-			entry.Unit = weight[0].Unit
-		}
+		for _, item := range *newJobs {
 
-		entry.Deadline = item.Main.Deadline.Unix()
-		entry.ProjectManager = item.Main.ProjectManager.FirstName + " " +
-			item.Main.ProjectManager.LastName
-		entry.SourceLang = item.Main.SourceLanguage.Name
+			var entry Job
 
-		if target := item.Main.Targets; len(target) > 0 {
-			entry.TargetLang = target[0].Name
+			entry.ID = item.Id.String
+			entry.Smart = item.Id.Smart
+			entry.Name = item.Main.ProjectName
+			entry.Type = item.Main.Typus
+			entry.Status = item.Main.Status
+			entry.SettingID = set.ID
+
+			if weight := item.Main.JobQuantities.Weighted; len(weight) > 0 {
+				entry.Quantity = weight[0].Value
+				entry.Unit = weight[0].Unit
+			}
+
+			entry.Deadline = item.Main.Deadline.Integer
+			entry.DelieveryDate = item.Main.DeliveryDate.Integer
+			entry.ProjectManager = item.Main.ProjectManager.FirstName + " " +
+				item.Main.ProjectManager.LastName
+			entry.SourceLang = item.Main.SourceLanguage.Name
+
+			if target := item.Main.Targets; len(target) > 0 {
+				entry.TargetLang = target[0].Name
+			}
+
+			sVPDB.Create(&entry)
+
+			//After creating the entry, update the files table if job is "in progress"
+			//(Reducing uncessary API requests.)
+			if item.Main.Status == "IN_PROGRESS" {
+				UpdateFiles(set.URL, item.Id.String, credentials)
+			}
 		}
+	}
+}
+
+func UpdateFiles(url, id string, cookies []*http.Cookie) {
+
+	job := GetJobAndSetting(id)
+
+	fileview, err := xtrf.File(url, job.ID, job.Smart, cookies)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, file := range fileview.SourceFiles {
+		var entry File
+		entry.ID = file.ID.String
+		entry.Name = file.Name
+		if job.Smart {
+			entry.MetaCategory = file.SmartCategory
+		} else {
+			entry.MetaCategory = file.Category
+		}
+		entry.JobID = job.ID
 
 		sVPDB.Create(&entry)
 	}
+	if job.Smart {
+		job.Communication = fmt.Sprintf("Instructions for all:\n%s\n\nInstructions for job:\n%s\n", fileview.InstructionsForAllJobs, fileview.InstructionsForJob)
+	} else {
+		job.Communication = fileview.Instructions
+	}
+
+	sVPDB.Save(job)
+
+}
+
+func GetJobAndSetting(id string) *Job {
+	var cur Job
+	sVPDB.Where("id = ?", id).First(&cur)
+	return &cur
 }
