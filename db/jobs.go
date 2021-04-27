@@ -36,6 +36,13 @@ func (j Job) DeadlineString() string {
 	return time.Unix(j.Deadline, 0).Format("02/01/2006 15.04.05")
 }
 
+// Type Jobslice implements sort
+type JobSlice []Job
+
+func (js JobSlice) Len() int           { return len(js) }
+func (js JobSlice) Less(i, j int) bool { return js[i].Deadline < js[j].Deadline }
+func (js JobSlice) Swap(i, j int)      { js[i], js[j] = js[j], js[i] }
+
 type File struct {
 	ID                 string `gorm:"primaryKey"`
 	Name, MetaCategory string
@@ -105,7 +112,7 @@ func UpdateJobs() {
 
 func UpdateFiles(url, id string, cookies []*http.Cookie) {
 
-	job := GetJobAndSetting(id)
+	job := jobById(id)
 
 	fileview, err := xtrf.File(url, job.ID, job.Smart, cookies)
 	if err != nil {
@@ -135,8 +142,24 @@ func UpdateFiles(url, id string, cookies []*http.Cookie) {
 
 }
 
-func GetJobAndSetting(id string) *Job {
+// jobById takes a job id and returns a job struct from the DB
+func jobById(id string) *Job {
 	var cur Job
 	sVPDB.Where("id = ?", id).First(&cur)
 	return &cur
+}
+
+// FilesOfJob returns all files associated with the job
+func FilesByJob(id string) []File {
+
+	var result []File
+
+	sVPDB.
+		Table("jobs").
+		Select("files.id, files.name, files.meta_category").
+		Joins("join files on jobs.id = files.job_id").
+		Where("jobs.id = ?", id).
+		Scan(&result)
+
+	return result
 }
