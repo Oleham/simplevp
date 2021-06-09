@@ -22,10 +22,18 @@ func downloadFunc() {
 		if err != nil {
 			fmt.Println("ops")
 		}
+		// if checked, list all work files. (to be downloaded)
 		if value {
-			fmt.Println(k)
-		}
+			files := db.FilesByJob(k)
 
+			for _, f := range files {
+
+				if f.MetaCategory == "WORKFILE" {
+					fmt.Println(f.Name)
+				}
+
+			}
+		}
 	}
 }
 
@@ -47,27 +55,18 @@ func jobPage() *container.Scroll {
 
 	title := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), widget.NewLabel("Viewing jobs"), layout.NewSpacer(), refresh)
 
-	accordion := widget.NewAccordion()
+	checklist := fyne.NewContainerWithLayout(layout.NewVBoxLayout())
 
 	for _, job := range *jobs {
 
 		if job.Status == "IN_PROGRESS" {
-			//bilde.Add(widget.New(fmt.Sprintf("%s -- %s -- %s", job.Name, job.DeadlineString(), job.SourceFiles), func(bool) {}))
-			job.SourceFiles = db.FilesByJob(job.ID)
+			checkedItems[job.ID] = binding.NewBool()
 
-			checklist := fyne.NewContainerWithLayout(layout.NewVBoxLayout())
-
-			for _, f := range job.SourceFiles {
-
-				checkedItems[f.Name] = binding.NewBool()
-
-				checklist.Add(widget.NewCheckWithData(fmt.Sprintf("%s (%s)", f.Name, f.MetaCategory), checkedItems[f.Name]))
-			}
-			accordion.Append(widget.NewAccordionItem(fmt.Sprintf("%s | %s", job.DeadlineString(), job.Name), checklist))
+			checklist.Add(widget.NewCheckWithData(fmt.Sprintf("%s -- %s -- %s", job.DeadlineString(), job.Name, job.Type), checkedItems[job.ID]))
 		}
 	}
 
-	bilde := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), title, accordion, widget.NewButton("Download", downloadFunc))
+	bilde := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), title, checklist, widget.NewButton("Download", downloadFunc))
 
 	return container.NewScroll(bilde)
 }
