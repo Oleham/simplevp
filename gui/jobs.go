@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/Oleham/simplevp/db"
+	"github.com/Oleham/simplevp/xtrf"
 )
 
 var checkedItems = make(map[string]binding.Bool)
@@ -28,7 +29,10 @@ func downloadFunc() {
 
 			for _, f := range files {
 
-				if f.MetaCategory == "WORKFILE" {
+				if f.MetaCategory == "WORKFILE" || f.MetaCategory == "WORK_FILE" {
+					job := db.JobById(f.JobID)
+					set := db.SettingById(job.SettingID)
+					xtrf.Download(set.URL, set.Email, set.Password, set.DownloadPath, f.Name, f.JobID, f.ID, job.Smart)
 					fmt.Println(f.Name)
 				}
 

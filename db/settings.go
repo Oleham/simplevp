@@ -27,6 +27,12 @@ func SettingByName(name string) *Setting {
 	return &cur
 }
 
+func SettingById(id uint) *Setting {
+	var cur Setting
+	sVPDB.Where("id = ?", id).First(&cur)
+	return &cur
+}
+
 func UpdateSetting(entry *Setting) {
 	// Updates the settings
 	sVPDB.Save(entry)

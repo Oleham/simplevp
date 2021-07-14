@@ -112,7 +112,7 @@ func UpdateJobs() {
 
 func UpdateFiles(url, id string, cookies []*http.Cookie) {
 
-	job := jobById(id)
+	job := JobById(id)
 
 	fileview, err := xtrf.File(url, job.ID, job.Smart, cookies)
 	if err != nil {
@@ -143,7 +143,7 @@ func UpdateFiles(url, id string, cookies []*http.Cookie) {
 }
 
 // jobById takes a job id and returns a job struct from the DB
-func jobById(id string) *Job {
+func JobById(id string) *Job {
 	var cur Job
 	sVPDB.Where("id = ?", id).First(&cur)
 	return &cur
@@ -156,7 +156,7 @@ func FilesByJob(id string) []File {
 
 	sVPDB.
 		Table("jobs").
-		Select("files.id, files.name, files.meta_category").
+		Select("files.id, files.name, files.meta_category", "files.job_id").
 		Joins("join files on jobs.id = files.job_id").
 		Where("jobs.id = ?", id).
 		Scan(&result)
