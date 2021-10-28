@@ -49,6 +49,19 @@ type File struct {
 	JobID              string
 }
 
+func deadlineToday(jobs *[]Job) []Job {
+
+	var newList []Job
+
+	for _, job := range *jobs {
+
+		if job.Deadline > time.Now().Unix() {
+			newList = append(newList, job)
+		}
+	}
+	return newList
+}
+
 func Jobs() *[]Job {
 
 	var jobs []Job
@@ -57,7 +70,10 @@ func Jobs() *[]Job {
 	if result.Error != nil {
 		log.Fatalf(result.Error.Error())
 	}
-	return &jobs
+
+	currentJobs := deadlineToday(&jobs)
+
+	return &currentJobs
 }
 
 func UpdateJobs() {
