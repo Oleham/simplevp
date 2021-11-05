@@ -16,10 +16,12 @@ func file(baseURL, jobID, fileID string, smart bool) *http.Request {
 		format = "%s/vendors/jobs/smart/%s/files/%s"
 		// Classic
 	} else {
-		format = "%s/vendors/jobs/classic/%s/files/%s"
+		format = "%s/vendors/jobs/classic/%s/source-files/%s?inline=true"
 	}
 
-	request, err := http.NewRequest("GET", fmt.Sprintf(format, baseURL, jobID, fileID), nil)
+	url := fmt.Sprintf(format, baseURL, jobID, fileID)
+
+	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +36,7 @@ func Download(baseURL, email, pw, downloadPath, filename, jobID, fileID string, 
 		filename = fileID + ".txt"
 	}
 
-	fullDownloadPath := downloadPath + filename
+	fullDownloadPath := downloadPath + string(os.PathSeparator) + filename
 
 	response := requestJSON(file(baseURL, jobID, fileID, smart), Login(baseURL, email, pw))
 
@@ -42,6 +44,5 @@ func Download(baseURL, email, pw, downloadPath, filename, jobID, fileID string, 
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%s was downloaded!", fullDownloadPath)
-
+	fmt.Printf("Downloaded: %s\n", fullDownloadPath)
 }

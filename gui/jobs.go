@@ -17,7 +17,10 @@ import (
 var checkedItems = make(map[string]binding.Bool)
 
 // Function for download button
-func downloadFunc() {
+func downloadFiles() {
+
+	var count int
+
 	for k, v := range checkedItems {
 		value, err := v.Get()
 		if err != nil {
@@ -33,12 +36,34 @@ func downloadFunc() {
 					job := db.JobById(f.JobID)
 					set := db.SettingById(job.SettingID)
 					xtrf.Download(set.URL, set.Email, set.Password, set.DownloadPath, f.Name, f.JobID, f.ID, job.Smart)
-					fmt.Println(f.Name)
+					count += 1
 				}
-
 			}
 		}
 	}
+	fmt.Printf("\nFinished downloading %d files.\n", count)
+}
+
+// Show description of job
+func showDesc() {
+
+	var confirmation dialog.Dialog
+
+	for k, v := range checkedItems {
+		value, err := v.Get()
+		if err != nil {
+			fmt.Println("ops")
+		}
+
+		if value {
+			job := db.JobById(k)
+			confirmation = dialog.NewInformation("Description", job.Communication, mainWindow)
+			break
+		} else {
+			confirmation = dialog.NewInformation("Attention", "Select 1 single job to see description", mainWindow)
+		}
+	}
+	confirmation.Show()
 }
 
 // jobPage returns the scrolling container with all the jobs
@@ -66,11 +91,21 @@ func jobPage() *container.Scroll {
 		if job.Status == "IN_PROGRESS" {
 			checkedItems[job.ID] = binding.NewBool()
 
-			checklist.Add(widget.NewCheckWithData(fmt.Sprintf("%s -- %s -- %s", job.DeadlineString(), job.Name, job.Type), checkedItems[job.ID]))
+			setting := db.SettingById(job.SettingID)
+
+			var printName string
+
+			if job.Name == "" {
+				printName = job.IdNumber
+			} else {
+				printName = job.Name
+			}
+
+			checklist.Add(widget.NewCheckWithData(fmt.Sprintf("%s | %s -- %s (%s)", job.DeadlineString(), printName, job.Type, setting.Name), checkedItems[job.ID]))
 		}
 	}
 
-	bilde := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), title, checklist, widget.NewButton("Download", downloadFunc))
+	bilde := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), title, checklist, widget.NewButton("Description", showDesc), widget.NewButton("Download", downloadFiles))
 
 	return container.NewScroll(bilde)
 }

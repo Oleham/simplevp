@@ -14,7 +14,7 @@ func StartGUI() {
 	mainMenu := menu(mainWindow)
 	mainWindow.SetMainMenu(mainMenu)
 	mainWindow.SetContent(frontPage())
-	mainWindow.Resize(fyne.NewSize(300, 300))
+	mainWindow.Resize(fyne.NewSize(1000, 750))
 	mainWindow.ShowAndRun()
 }
 
@@ -29,9 +29,7 @@ Prøv det nå!`
 
 	textObj := widget.NewLabel(text)
 
-	button := widget.NewButton("Trykk meg!", func() { simpleVP.SendNotification(&fyne.Notification{Title: "Varsel", Content: "Dette er en test"}) })
-
-	page := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), textObj, button)
+	page := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), textObj)
 
 	return page
 }

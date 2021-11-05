@@ -1,7 +1,21 @@
 # simpleVP
 
-Work in progress, the Go remake of my original program simpleVP written in Python.
+Tool for displaying and downloading tasks from multiple XTRF installations.
 
-When finished, this should allow for simple downloading and uploading of tasks from the XTRF vendor portal.
+Features:
 
-Written in Go using Fyne for the gui and GORM for database handling.
+* simple graphical user interface
+
+* ability to store multiple XTRF clients
+
+* display all current XTRF jobs in one single list
+
+* download all work files for each XTRF job into a user defined directory.
+
+Not yet implemented:
+
+* uploading files to XTRF
+
+* changing dates
+
+Written in Go using [Fyne](https://fyne.io/) for the gui and [GORM](https://gorm.io/) as ORM.

@@ -96,6 +96,7 @@ func UpdateJobs() {
 			entry.ID = item.Id.String
 			entry.Smart = item.Id.Smart
 			entry.Name = item.Main.ProjectName
+			entry.IdNumber = item.Main.IdNumber
 			entry.Type = item.Main.Typus
 			entry.Status = item.Main.Status
 			entry.SettingID = set.ID
