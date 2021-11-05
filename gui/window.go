@@ -21,11 +21,17 @@ func StartGUI() {
 func frontPage() *fyne.Container {
 	// Dette skal være forsiden i appen min.
 
-	text := `Velkommen til den fine appen min.
+	text := `Welcome to simpleVP.
     
-Her vil du ha muligheten til å laste ned masse spennende oppdrag fra ulike XTRF-installasjoner.
+Use the dropdown in the top left corner to navigate.
+
+Create a client in the "Settings"section. 
+Add the base URL of the XTRF web site, your email and password. 
+Also specify a download folder.
+URL and download folder should be WITHOUT trailing slash, i.e. "C:\Users\user\myfolder" and "https://xtrf.myclient.com". 
     
-Prøv det nå!`
+After adding a client, navigate to the "Jobs" section and click "Update" to see all current jobs (deadline not yet reached).
+Download all work files or read the description of the task.`
 
 	textObj := widget.NewLabel(text)
 
